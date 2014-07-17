@@ -14,12 +14,13 @@ namespace NHibernate.DependencyInjection.Tests
         public When_using_custom_bytecode_provider()
         {
             //register the bytecode provider with NHibernate
-            Initializer.RegisterBytecodeProvider(new EntityInjector());
+            Initializer.RegisterBytecodeProvider(new CustomInjector());
             //configure NHibernate
             var config = new Configuration();
             config.AddClass(typeof(BasicCat));
             config.AddClass(typeof(InterfaceCat));
             config.AddClass(typeof(DependencyInjectionCat));
+            config.AddClass(typeof(BasicCatWithUserTypeRequiringDependencyInjection));
             //create the database
             var tool = new SchemaExport(config);
             tool.Execute(false, true, false);
@@ -177,6 +178,40 @@ namespace NHibernate.DependencyInjection.Tests
                 //assert persistence via proxy
                 Assert.AreEqual(2, babyCat.Parent.Kittens.Count);
                 Assert.AreEqual("Gramma", babyCat.Parent.Parent.Name);
+            }
+        }
+
+        [Test]
+        public void Can_inject_into_user_type()
+        {
+            //arrange
+            var grannyCat = new BasicCatWithUserTypeRequiringDependencyInjection {Name = "Granny"};
+            var mommyCat = new BasicCatWithUserTypeRequiringDependencyInjection {Name = "Mommy"};
+            var babyCat = new BasicCatWithUserTypeRequiringDependencyInjection {Name = "Baby"};
+
+            using (var session = _sessionFactory.OpenSession())
+            {
+                using (var t = session.BeginTransaction())
+                {
+                    session.SaveOrUpdate(grannyCat);
+                    grannyCat.Kittens.Add(mommyCat);
+                    mommyCat.Parent = grannyCat;
+                    mommyCat.Kittens.Add(babyCat);
+                    babyCat.Parent = mommyCat;
+                    t.Commit();
+                }
+            }
+            //act
+            using (var session = _sessionFactory.OpenSession())
+            {
+                using (var t = session.BeginTransaction())
+                {
+                    babyCat = session.Get<BasicCatWithUserTypeRequiringDependencyInjection>(babyCat.Id);
+                    //assert ToUpper was enacted
+                    Assert.IsTrue(babyCat.Name == "BABY");
+                    Assert.IsTrue(babyCat.Parent.Name == "MOMMY");
+                    Assert.IsTrue(babyCat.Parent.Parent.Name == "GRANNY");
+                }
             }
         }
     }

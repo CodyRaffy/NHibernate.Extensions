@@ -1,5 +1,4 @@
-﻿using System;
-using System.Configuration;
+﻿using System.Configuration;
 using System.Security.Permissions;
 using NHibernate.Bytecode;
 using NHibernate.DependencyInjection.Core;
@@ -21,24 +20,30 @@ namespace NHibernate.DependencyInjection
     [ReflectionPermission(SecurityAction.Demand, MemberAccess = true, ReflectionEmit = true, RestrictedMemberAccess = true)]
     public class BytecodeProvider : AbstractBytecodeProvider
     {
-        internal static IEntityInjector EntityInjector { get; private set; }
+        internal static IInjector EntityInjector { get; private set; }
+        private static IObjectsFactory _objectsFactory;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        public BytecodeProvider()
+        public BytecodeProvider() : this(null) { }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="injector">Provide an IInjector implementation to support dependency injection for entities and objects</param>
+        public BytecodeProvider(IInjector injector)
         {
-            EntityInjector = new DefaultEntityInjector();
+            EntityInjector = injector ?? new DefaultInjector();
+
+            _objectsFactory = injector != null
+                ? new ObjectsFactory(injector)
+                : new ObjectsFactory();
         }
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="entityInjector">Provide a IEntityInjector implementation to support dependency injection</param>
-        public BytecodeProvider(IEntityInjector entityInjector)
+        public override IObjectsFactory ObjectsFactory
         {
-            if (entityInjector == null) throw new ArgumentNullException("entityInjector");
-            EntityInjector = entityInjector;
+            get { return _objectsFactory; }
         }
 
         /// <summary>

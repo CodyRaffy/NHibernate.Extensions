@@ -1,5 +1,5 @@
 ﻿The NHibernate.Session.Marshaler is an ISession context provider for NHibernate.  It is a simple process to create a 
-unit of work implemenation that works identically in web (per request) or per process level environments.  The only
+unit of work implementation that works identically in web (per request) or per process level environments.  The only
 difference is that in per process environments, a commit will also spin up a new transaction so that processing can 
 continue.  This can be useful in a check-point restart pattern for batch processing.
 
@@ -7,8 +7,9 @@ continue.  This can be useful in a check-point restart pattern for batch process
 This can be useful for batch automation programs that need to use the same infrastructure initialization configuration.
 The marshaler can now create stateless sessions for cases where 1st level cache is not needed.
 
-the Marshaler uses the NHibernate.Context.WebSessionContext when HttpContext is detected, otherwise 
-NHibernate.Context.ThreadStaticSessionContext is used. 
+the Marshaler uses a custom CurrentSessionContext (HybridWebSessionContext).  HybridWebSessionContext will store the 
+session in the HttpContext Items dictionary when accessed from a web thread and from a thread static private variable 
+for non-web threads.  This allows the session to be obtained from the same session factory for web and non-web threads. 
 
 Typical setup:
 

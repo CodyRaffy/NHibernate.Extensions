@@ -47,16 +47,18 @@
   <ItemGroup>
     <Compile Include="BytecodeProvider.cs" />
     <Compile Include="Core\DefaultArgumentHandler.cs" />
+    <Compile Include="Core\DefaultInjector.cs" />
     <Compile Include="Core\DefaultMethodEmitter.cs" />
     <Compile Include="Core\DefaultProxyFactory.cs" />
     <Compile Include="Core\DefaultProxyFactoryFactory.cs" />
     <Compile Include="Core\DefaultProxyMethodBuilder.cs" />
     <Compile Include="Core\DynProxyTypeValidator.cs" />
+    <Compile Include="Core\ObjectFactory.cs" />
     <Compile Include="Core\ProxyFactory.cs" />
     <Compile Include="Core\ProxyFactoryFactory.cs" />
     <Compile Include="Core\ProxyImplementor.cs" />
     <Compile Include="Core\ReflectionOptimizer.cs" />
-    <Compile Include="Core\DefaultEntityInjector.cs" />
+    <Compile Include="IInjector.cs" />
     <Compile Include="Initializer.cs" />
     <Compile Include="IEntityInjector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

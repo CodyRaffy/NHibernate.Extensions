@@ -8,18 +8,18 @@ namespace NHibernate.DependencyInjection
         /// <summary>
         /// Plugs the bytecode provider into NHibernate
         /// </summary>
-        /// <param name="injector">IEntityInjector implementation for dependency injection with NHibernate</param>
-        public static void RegisterBytecodeProvider(IEntityInjector injector)
+        public static void RegisterBytecodeProvider()
         {
-            Cfg.Environment.BytecodeProvider = new BytecodeProvider(injector);
+            Cfg.Environment.BytecodeProvider = new BytecodeProvider();
         }
 
         /// <summary>
         /// Plugs the bytecode provider into NHibernate
         /// </summary>
-        public static void RegisterBytecodeProvider()
+        /// <param name="injector">IInjector implementation for entity and object dependency injection with NHibernate</param>
+        public static void RegisterBytecodeProvider(IInjector injector)
         {
-            Cfg.Environment.BytecodeProvider = new BytecodeProvider();
+            Cfg.Environment.BytecodeProvider = new BytecodeProvider(injector);
         }
     }
 }
