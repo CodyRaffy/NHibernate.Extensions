@@ -1,7 +1,7 @@
-﻿using System;
-using System.Web;
-using NHibernate.Cfg;
+﻿using NHibernate.Cfg;
 using NHibernate.Context;
+using System;
+using System.Web;
 
 namespace NHibernate.Session
 {
@@ -64,14 +64,9 @@ namespace NHibernate.Session
                     return _factory.OpenStatelessSession();
                 }
             }
-            if (HttpContext.Current != null)
-            {
-                InitializeContextAwareFactory<WebSessionContext>();
-            }
-            else
-            {
-                InitializeContextAwareFactory<ThreadStaticSessionContext>();
-            }
+           
+            InitializeContextAwareFactory<HybridWebSessionContext>();
+            
             if (_factory == null) throw new InvalidOperationException("SessionFactory was not initialized");
             return _factory.OpenStatelessSession();
         }
@@ -99,14 +94,7 @@ namespace NHibernate.Session
                 }
                 if (_factory == null)
                 {
-                    if (HttpContext.Current != null)
-                    {
-                        InitializeContextAwareFactory<WebSessionContext>();
-                    }
-                    else
-                    {
-                        InitializeContextAwareFactory<ThreadStaticSessionContext>();
-                    }
+                    InitializeContextAwareFactory<HybridWebSessionContext>();
                 }
                 if (_factory == null) throw new InvalidOperationException("SessionFactory was not initialized");
                 if (CurrentSessionContext.HasBind(_factory)) return _factory.GetCurrentSession();
