@@ -1,4 +1,5 @@
-﻿using NHibernate.Context;
+﻿using System.Collections;
+using NHibernate.Context;
 using NHibernate.Engine;
 using System;
 
@@ -10,39 +11,37 @@ namespace NHibernate.Session
     /// is available (web request threads) the HttpContext items dictionary is used to store the session otherwise 
     /// a thread static private variable is used. 
     /// </summary>
-    public class HybridWebSessionContext : CurrentSessionContext
+    public class HybridWebSessionContext :  MapBasedSessionContext
     {
-        private const string ItemsKey = "HybridWebSessionContext";
+        private const string ItemsKey = "NHibernate.Session.HybridWebSessionContext";
 
         [ThreadStatic]
-        private static ISession _threadSession;
-
+        private static IDictionary _threadSessionDictionary;
+		
         // This constructor should be kept, otherwise NHibernate will fail to create an instance of this class.
-        public HybridWebSessionContext(ISessionFactoryImplementor factory) { }
+        public HybridWebSessionContext(ISessionFactoryImplementor factory) : base(factory) { }
 
-        protected override ISession Session
-        {
-            get
+        protected override IDictionary GetMap()
+		{
+			var currentContext = ReflectiveHttpContext.HttpContextCurrentGetter();
+            if (currentContext == null) return _threadSessionDictionary;
+			
+			var items = ReflectiveHttpContext.HttpContextItemsGetter(currentContext);
+            var session = items[ItemsKey] as IDictionary;
+            return session ?? _threadSessionDictionary;
+		}
+
+		protected override void SetMap(IDictionary value)
+		{
+			var currentContext = ReflectiveHttpContext.HttpContextCurrentGetter();
+            if (currentContext != null)
             {
-                var currentContext = ReflectiveHttpContext.HttpContextCurrentGetter();
-                if (currentContext == null) return _threadSession;
-
                 var items = ReflectiveHttpContext.HttpContextItemsGetter(currentContext);
-                var session = items[ItemsKey] as ISession;
-                return session ?? _threadSession;
+                items[ItemsKey] = value;
+                return;
             }
-            set
-            {
-                var currentContext = ReflectiveHttpContext.HttpContextCurrentGetter();
-                if (currentContext != null)
-                {
-                    var items = ReflectiveHttpContext.HttpContextItemsGetter(currentContext);
-                    items[ItemsKey] = value;
-                    return;
-                }
 
-                _threadSession = value;
-            }
-        }
+            _threadSessionDictionary = value;
+		}
     }
 }
